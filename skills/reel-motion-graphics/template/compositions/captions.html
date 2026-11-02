@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        /* Caption band y 812–904 (48 + 8 + 36), content column. Line 1 Bodoni italic, line 2 body muted. */
+        #root { position: absolute; inset: 0; }
+        .cap { position: absolute; left: var(--col-x); width: var(--col-w); top: 812px; opacity: 0; }
+        .cap-1 { display: block; font: italic 500 40px/48px var(--disp); color: var(--fg); }
+        .cap-1 em { color: var(--sand); }
+        .cap-2 { display: block; margin-top: 8px; font: 500 28px/36px var(--body); color: var(--mut); }
+      </style>
+      <div id="root" data-composition-id="captions" data-width="1080" data-height="1920"></div>
+      <script>
+        // [in, out, line 1 (HTML), line 2] in global seconds
+        const CAPS = [
+          [4.35, 8.5, "Every layer has attention", "and one feed-forward MLP."],
+          [8.85, 13.5, "Each expert starts as an exact copy.", "Everything else is reused."],
+          [13.85, 18.5, "A new router scores every token.", "Each one visits its top two experts."],
+          [18.85, 24.5, "Same weights, different gradients.", "The experts drift apart."],
+          [27.9, 30, "Start from what <em>you already trained.</em>", ""],
+        ];
+        const root = document.querySelector('[data-composition-id="captions"]:not([data-composition-src])');
+        CAPS.forEach((c, n) => root.insertAdjacentHTML("beforeend",
+          '<div id="cap-' + n + '" class="cap"><span class="cap-1">' + c[2] + '</span>' + (c[3] ? '<span class="cap-2">' + c[3] + '</span>' : '') + '</div>'));
+        const tl = gsap.timeline({ paused: true });
+        CAPS.forEach((c, n) => {
+          const id = "#cap-" + n;
+          tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: .2 }, c[0]);
+          tl.fromTo(id + " .cap-1", { opacity: 0, y: 18, filter: "blur(8px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: .7, ease: "power3.out" }, c[0]);
+          if (c[3]) tl.fromTo(id + " .cap-2", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .6, ease: "power3.out" }, c[0] + .15);
+          tl.to(id, { opacity: 0, duration: .35, ease: "power2.in" }, c[1] - .35);
+        });
+        window.__timelines["captions"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

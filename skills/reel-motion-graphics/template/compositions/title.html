@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        /* Title card 0–4 s: paper credit, two-line display title with a gold sheen,
+           underline, thesis lines, and one glass card fanning into eight. */
+        #root { position: absolute; inset: 0; color: var(--fg); }
+        #ti-eyebrow { position: absolute; left: var(--col-x); top: 212px; width: var(--col-w); }
+        .ti-big { position: absolute; left: var(--col-x); font: 500 128px/1 var(--disp); letter-spacing: -.02em; white-space: nowrap; }
+        #ti-l1 { top: 240px; }
+        #ti-l2 { top: 368px; }
+        #ti-l2 em { font-style: italic; background: var(--gold-sheen); background-size: 300% 100%;
+          background-position: calc(100% - var(--sheen,0) * 1%) 0; -webkit-background-clip: text; background-clip: text; color: transparent;
+          padding-right: 12px; }
+        #ti-rule { position: absolute; left: var(--col-x); top: 528px; width: 228px; height: 8px; border-radius: 4px;
+          background: var(--gold-sheen); background-size: 300% 100%; transform-origin: 0 50%; }
+        #ti-t1 { position: absolute; left: var(--col-x); top: 560px; font: 500 32px/40px var(--body); color: var(--fg); }
+        #ti-t2 { position: absolute; left: var(--col-x); top: 604px; font: italic 500 40px/48px var(--disp); color: var(--fg); }
+        #ti-mini { position: absolute; left: var(--col-x); top: 684px; width: var(--col-w); height: 104px; perspective: 900px; }
+        #ti-dense { position: absolute; left: 0; top: 0; width: 72px; height: 104px; }
+        #ti-arrow { position: absolute; left: 96px; top: 32px; font: 500 40px/40px var(--body); color: var(--mut); }
+        .ti-ex { position: absolute; left: 0; top: 0; width: 72px; height: 48px; border-radius: 12px; }
+      </style>
+      <div id="root" data-composition-id="title" data-width="1080" data-height="1920">
+        <div id="ti-eyebrow" class="eyebrow">ICLR 2023 · Komatsuzaki et al.</div>
+        <div id="ti-l1" class="ti-big">Sparse</div>
+        <div id="ti-l2" class="ti-big"><em id="ti-em">Upcycling</em></div>
+        <div id="ti-rule"></div>
+        <div id="ti-t1">Dense model in. Mixture-of-experts out.</div>
+        <div id="ti-t2">Without starting over.</div>
+        <div id="ti-mini">
+          <div id="ti-dense" class="glass"></div>
+          <div id="ti-arrow">→</div>
+        </div>
+      </div>
+      <script>
+        const mini = document.getElementById("ti-mini");
+        for (let i = 0; i < 8; i++) {
+          const d = document.createElement("div");
+          d.className = "ti-ex glass"; d.id = "ti-ex-" + i;
+          mini.appendChild(d);
+        }
+        // this composition's own root (the host slot also carries data-composition-id, but has a src)
+        const ROOT = document.querySelector('[data-composition-id="title"]:not([data-composition-src])');
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#ti-eyebrow", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .6, ease: "power3.out" }, .2);
+        tl.fromTo(["#ti-l1", "#ti-l2"], { opacity: 0, y: 48, filter: "blur(14px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: .9, ease: "power3.out", stagger: .15 }, .3);
+        tl.fromTo("#ti-em", { "--sheen": 0 }, { "--sheen": 100, duration: 1.8, ease: "power1.inOut" }, 1.0);
+        tl.fromTo("#ti-rule", { scaleX: 0 }, { scaleX: 1, duration: .6, ease: "power3.out" }, 1.0);
+        tl.fromTo("#ti-t1", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .6, ease: "power3.out" }, 1.4);
+        tl.fromTo("#ti-t2", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .6, ease: "power3.out" }, 1.6);
+        tl.fromTo(["#ti-dense", "#ti-arrow"], { opacity: 0 }, { opacity: 1, duration: .5 }, 1.6);
+        // one dense card fans out in depth into two rows of four experts
+        for (let i = 0; i < 8; i++) {
+          const col = i % 4, row = (i / 4) | 0;
+          tl.fromTo("#ti-ex-" + i, { x: 0, y: 0, z: -60, rotationY: -35, opacity: 0 },
+            { x: 160 + col * 80, y: row * 56, z: 0, rotationY: 0, opacity: 1, duration: 1, ease: "power3.out" }, 1.7 + i * .08);
+        }
+        tl.to(ROOT, { opacity: 0, duration: .5, ease: "power2.in" }, 3.5);
+        window.__timelines["title"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,34 +1,45 @@
 #!/bin/zsh
-# Copies my custom skills from ~/.claude/skills into this repo and pushes.
-# New skill? Add its folder name to SKILLS and run ./sync.sh
+# Copies my custom skills into this repo and pushes.
+# New skill? Add "name|source folder|extra rsync excludes" to SKILLS and run ./sync.sh
 set -e
 cd "${0:A:h}"
+S=~/.claude/skills
+P=~/Desktop/"Side Projects"
 
 SKILLS=(
-  app-arbitrage
-  app-keyword-research
-  app-offer
-  appicon-creator
-  create-app
-  app-set-up-infra
-  new-app-info
-  deep-work
+  "app-arbitrage|$S/app-arbitrage|"
+  "app-keyword-research|$S/app-keyword-research|"
+  "app-offer|$S/app-offer|"
+  "appicon-creator|$S/appicon-creator|"
+  "create-app|$S/create-app|"
+  "app-set-up-infra|$S/app-set-up-infra|"
+  "new-app-info|$S/new-app-info|"
+  "deep-work|$S/deep-work|"
+  "brand-reference-pack|$P/GetAhead/.claude/skills/brand-reference-pack|apps/getahead/"
+  "reel-script|$P/Reel Creator/.claude/skills/reel-script|"
+  "reel-motion-graphics|$P/Reel Creator/.claude/skills/reel-motion-graphics|node_modules/ renders/"
+  # The channel-brain skills need the driver scripts next to them, so publish the project minus its data.
+  "channel-brain|$P/channel-brain|brains/ team/ .agents/ *.pdf personal-brand-vision.md RESUME.md shoot-day-1.md weekly-3-1-2-1-sheet.md zero-to-100-app-playbook.html"
 )
 
 # Private or copyrighted: never published.
-EXCLUDES=(--exclude .DS_Store --exclude examples/ --exclude 100m-offers-transcript.txt --exclude __pycache__/)
+BASE=(.DS_Store examples/ 100m-offers-transcript.txt __pycache__/)
 
-for s in $SKILLS; do
-  src=~/.claude/skills/$s
-  [[ -f $src/SKILL.md ]] || { echo "missing: $src/SKILL.md" >&2; exit 1; }
-  rsync -aL --delete $EXCLUDES "$src/" "skills/$s/"
+names=()
+for entry in $SKILLS; do
+  IFS='|' read -r name src extra <<< "$entry"
+  names+=$name
+  [[ -f $src/SKILL.md || -d $src/.claude/skills ]] || { echo "no skill at: $src" >&2; exit 1; }
+  ex=()
+  for e in $BASE ${=extra}; do ex+=(--exclude "$e"); done
+  rsync -aL --delete $ex "$src/" "skills/$name/"
   # Drop README rows pointing at the excluded files.
-  [[ -f skills/$s/README.md ]] && sed -i '' -e '/examples\//d' -e '/100m-offers-transcript/d' skills/$s/README.md
+  [[ -f skills/$name/README.md ]] && sed -i '' -e '/examples\//d' -e '/100m-offers-transcript/d' skills/$name/README.md
 done
 
-# Remove published skills that are no longer in SKILLS.
+# Remove published skills that are no longer listed.
 for d in skills/*(/N); do
-  (( ${SKILLS[(Ie)${d:t}]} )) || rm -rf "$d"
+  (( ${names[(Ie)${d:t}]} )) || rm -rf "$d"
 done
 
 git add -A

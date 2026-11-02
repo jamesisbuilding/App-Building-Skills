@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        /* Step headings 4–30 s (local 0–26): one shared progress rail, one eyebrow + headline per step. */
+        #root { position: absolute; inset: 0; color: var(--fg); }
+        #hd-bars { position: absolute; left: var(--col-x); top: 200px; display: flex; gap: 12px; }
+        .hd-bar { width: 56px; height: 8px; border-radius: 4px; background: rgba(245,232,206,.18); overflow: hidden; }
+        .hd-fill { display: block; width: 100%; height: 100%; background: var(--gold-sheen); background-size: 300% 100%; transform-origin: 0 50%; }
+        .hd-step { position: absolute; left: var(--col-x); top: 232px; width: var(--col-w); }
+        .hd-step .headline { margin-top: 16px; }
+        .hd-w { display: inline-block; }
+      </style>
+      <div id="root" data-composition-id="headings" data-width="1080" data-height="1920">
+        <div id="hd-bars"></div>
+      </div>
+      <script>
+        // EDIT per reel: [start, end, step number, plain words, italic accent] in local seconds (host start = 0)
+        const STEPS = [
+          [0, 4.5, 1, "A trained", "dense layer"],
+          [4.5, 9.5, 2, "Copy the MLP", "eight times"],
+          [9.5, 14.5, 3, "Add a", "router"],
+          [14.5, 20.5, 4, "Keep", "training"],
+          [20.5, 26, 4, "What it", "costs"],
+        ];
+        const root = document.getElementById("hd-bars").parentElement, bars = document.getElementById("hd-bars");
+        const TOTAL = Math.max(...STEPS.map(s => s[2])), END = STEPS[STEPS.length - 1][1];
+        for (let k = 0; k < TOTAL; k++) bars.insertAdjacentHTML("beforeend", '<div class="hd-bar"><span id="hd-fill-' + k + '" class="hd-fill"></span></div>');
+        STEPS.forEach((s, n) => {
+          const words = s[3].split(" ").map(w => '<span class="hd-w">' + w + '</span>').join(" ");
+          root.insertAdjacentHTML("beforeend",
+            '<div id="hd-s' + n + '" class="hd-step"><div class="eyebrow">Step ' + s[2] + ' of ' + TOTAL + '</div>' +
+            '<div class="headline">' + words + ' <em id="hd-em-' + n + '" class="hd-w">' + s[4] + '</em></div></div>');
+        });
+
+        // this composition's own root (the host slot also carries data-composition-id, but has a src)
+        const ROOT = document.querySelector('[data-composition-id="headings"]:not([data-composition-src])');
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#hd-bars", { opacity: 0 }, { opacity: 1, duration: .5 }, 0);
+        // each progress bar fills as its step first appears
+        STEPS.forEach((s, n) => { if (!n || STEPS[n - 1][2] !== s[2])
+          tl.fromTo("#hd-fill-" + (s[2] - 1), { scaleX: 0 }, { scaleX: 1, duration: .7, ease: "power2.inOut" }, s[0] + (s[0] ? .1 : 0)); });
+        STEPS.forEach((s, n) => {
+          const id = "#hd-s" + n, last = n === STEPS.length - 1;
+          tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: .3 }, s[0]);
+          tl.fromTo(id + " .eyebrow", { y: 10 }, { y: 0, duration: .5, ease: "power3.out" }, s[0]);
+          tl.fromTo(id + " .hd-w", { opacity: 0, y: 34, filter: "blur(10px)" },
+            { opacity: 1, y: 0, filter: "blur(0px)", duration: .8, ease: "power3.out", stagger: .07 }, s[0] + .05);
+          tl.fromTo("#hd-em-" + n, { "--sheen": 0 }, { "--sheen": 100, duration: 1.6, ease: "power1.inOut" }, s[0] + .7);
+          if (!last) tl.to(id, { opacity: 0, y: -10, duration: .35, ease: "power2.in" }, s[1] - .35);
+        });
+        tl.to(ROOT, { opacity: 0, duration: .55, ease: "power2.in" }, END - .55);
+        window.__timelines["headings"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

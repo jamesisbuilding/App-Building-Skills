@@ -54,7 +54,6 @@ How you work with Claude before any app exists.
 
 - **[app-arbitrage](skills/app-arbitrage/) (mine)** Paste a successful App Store app; get every review Apple exposes (36 storefronts), coded by subagents, tangential markets checked, and one scored rebuild tweak. Seeds `features.csv`. This is "rip an app idea and find the opportunity".
 - **[app-keyword-research](skills/app-keyword-research/) (mine) ✅** Turn an idea into search phrases and measure demand (App Store autocomplete) against competition (current top 10). Compare ideas before building.
-- **[World Monitor](https://mcpmarket.com/server/world-monitor)** MCP server for global news and trends: spot shifts worth building for.
 
 ## 02 Market analysis
 

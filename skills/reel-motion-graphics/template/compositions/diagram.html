@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        /* The model diagram 4–30 s (local = global − 4): one continuous 3D world.
+           attention bar → dense MLP slab → eight glass experts → router → tokens → experts diverge. */
+        #root { position: absolute; inset: 0; color: var(--fg); }
+
+        .dg-bar { position: absolute; left: var(--col-x); width: var(--col-w); height: 52px; box-sizing: border-box;
+          display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+        #dg-attn { top: 372px; }
+        #dg-router { top: 448px; }
+        .dg-bar-l { font: 600 24px/24px var(--body); letter-spacing: .14em; color: var(--fg); }
+        .dg-bar-r { font: 500 20px/20px var(--body); color: #DCC7A2; }
+        #dg-router .dg-bar-l { color: var(--pale); }
+        #dg-rglow { position: absolute; inset: 0; border-radius: 16px; opacity: 0;
+          box-shadow: inset 0 0 0 2px var(--pale), 0 0 30px rgba(249,234,203,.55); }
+
+        /* lens + world: static perspective, preserve-3d world centred on the row */
+        #dg-stage { position: absolute; left: 0; top: 440px; width: 1080px; height: 340px; perspective: 1100px; }
+        #dg-drift, #dg-world { position: absolute; left: 500px; top: 168px; width: 0; height: 0; transform-style: preserve-3d; }
+        #dg-world { left: 0; top: 0; }
+        .dg-card { position: absolute; left: -36px; top: -84px; width: 72px; height: 168px; box-sizing: border-box; }
+        .dg-lab { position: absolute; left: 12px; top: 12px; font: 600 20px/20px var(--body); color: #FFF7EA; letter-spacing: .04em; }
+        .dg-grid { position: absolute; left: 12px; right: 12px; top: 44px; bottom: 12px;
+          display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr); gap: 4px; }
+        .dg-cell { border-radius: 4px; background: var(--sand); box-shadow: 0 0 12px rgba(243,221,176,.6); }
+        .dg-hit, .dg-glow, .dg-tint { position: absolute; inset: 0; border-radius: 16px; opacity: 0; }
+        .dg-hit { box-shadow: inset 0 0 0 2px var(--pale), 0 0 28px rgba(249,234,203,.6); }
+        .dg-glow { box-shadow: inset 0 0 0 2px #FFF7EA, 0 0 34px rgba(255,247,234,.7); }
+        .dg-tint { box-shadow: inset 0 0 0 1.5px var(--tint); }
+        #dg-floor { position: absolute; left: 148px; top: 228px; width: 704px; height: 88px; border-radius: 50%;
+          background: radial-gradient(50% 50% at 50% 50%, rgba(221,187,127,.42), rgba(221,187,127,.08) 60%, transparent 75%); }
+        #dg-scan { position: absolute; left: 0; top: 40px; width: 4px; height: 240px; border-radius: 2px; opacity: 0;
+          background: linear-gradient(180deg, transparent, var(--pale) 30%, var(--pale) 70%, transparent);
+          box-shadow: 0 0 24px 6px rgba(249,234,203,.55); }
+
+        /* token layer: flat overlay above the world */
+        #dg-trails { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
+        .dg-dot { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%; opacity: 0;
+          background: #FFF7EA; box-shadow: 0 0 14px rgba(255,247,234,.9); }
+
+        .dg-note { position: absolute; left: 0; width: 1000px; top: 760px; text-align: center; font: 500 24px/24px var(--body);
+          letter-spacing: .2em; text-transform: uppercase; color: var(--mut); opacity: 0; }
+      </style>
+
+      <div id="root" data-composition-id="diagram" data-width="1080" data-height="1920">
+        <div id="dg-attn" class="dg-bar glass" style="--gloss:-1">
+          <span class="dg-bar-l">SELF-ATTENTION</span><span id="dg-attn-r" class="dg-bar-r">copied as is</span>
+        </div>
+        <div id="dg-router" class="dg-bar glass">
+          <span class="dg-bar-l">ROUTER</span><span class="dg-bar-r">new · random init · top-2</span><div id="dg-rglow"></div>
+        </div>
+        <div id="dg-stage">
+          <div id="dg-floor"></div>
+          <div id="dg-scan"></div>
+          <div id="dg-drift"><div id="dg-world" data-layout-allow-overflow></div></div>
+        </div>
+        <svg id="dg-trails" viewBox="0 0 1080 1920" fill="none" aria-hidden="true"></svg>
+        <div id="dg-dots"></div>
+        <div id="dg-note-0" class="dg-note">pretrained weights</div>
+        <div id="dg-note-1" class="dg-note">8 identical copies</div>
+        <div id="dg-note-2" class="dg-note">8 different experts</div>
+      </div>
+
+      <script>
+        function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+        const weights = s => { const r = rng(s); return Array.from({ length: 15 }, () => 0.1 + 0.9 * Math.pow(r(), 1.6)); };
+        const hh = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+        const hsl = (h, s, l) => { s /= 100; l /= 100; const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+          const f = n => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))); return "rgb(" + f(0) + "," + f(8) + "," + f(4) + ")"; };
+        const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x)), seg = (t, a, b) => clamp((t - a) / (b - a));
+        const eo = x => 1 - Math.pow(1 - x, 3), lerp = (a, b, x) => a + (b - a) * x;
+
+        // expert identities, base weights (shared by every copy) and the weights each expert drifts to
+        const EX = [[40,62,66],[22,52,62],[66,32,62],[196,24,64],[34,44,74],[10,44,66],[52,50,70],[210,22,68]].map(c => hsl(...c));
+        const BASE = weights(7), ALT = EX.map((_, e) => weights(100 + e * 13));
+        const PREF = [[0,5],[2,3],[4,1],[6,7],[3,6]];
+        const N = 8, SLOT = 80, ROW_X = 500, CARD_TOP = 527, ROUTER_Y = 474, ATTN_Y = 412;
+        const slotX = i => ROW_X + (i - 3.5) * SLOT;
+
+        const world = document.getElementById("dg-world");
+        for (let i = N - 1; i >= 0; i--) {
+          world.insertAdjacentHTML("beforeend",
+            '<div id="dg-card-' + i + '" class="dg-card glass" style="--tint:' + EX[i] + '">' +
+            (i ? '' : '<span class="dg-lab dg-lab-mlp">MLP</span>') + '<span class="dg-lab dg-lab-e">E' + (i + 1) + '</span>' +
+            '<div class="dg-grid">' + BASE.map(() => '<i class="dg-cell"></i>').join("") + '</div>' +
+            '<div class="dg-tint"></div><div class="dg-hit"></div><div class="dg-glow"></div></div>');
+        }
+        const cards = Array.from({ length: N }, (_, i) => document.getElementById("dg-card-" + i));
+        const glows = cards.map(c => c.querySelector(".dg-glow"));
+
+        // token pool: 24 tokens × 2 routes, each a trail path + a dot
+        const svg = document.getElementById("dg-trails"), dotsEl = document.getElementById("dg-dots");
+        for (let k = 0; k < 48; k++) {
+          svg.insertAdjacentHTML("beforeend", '<path id="dg-tr-' + k + '" stroke-width="3.5" stroke-linecap="round" opacity="0"/>');
+          dotsEl.insertAdjacentHTML("beforeend", '<div id="dg-dot-' + k + '" class="dg-dot"></div>');
+        }
+        const trails = Array.from({ length: 48 }, (_, k) => document.getElementById("dg-tr-" + k));
+        const dots = Array.from({ length: 48 }, (_, k) => document.getElementById("dg-dot-" + k));
+        const TOK = Array.from({ length: 24 }, (_, i) => {
+          const t0 = 11.2 + i * .4, p = clamp((t0 + 4 - 18.5) / 4.5), pref = hh(i * 7 + 2) < p;
+          const a = Math.floor(hh(i * 5 + 3) * 8);
+          return { t0, sx: 68 + .864 * (144 + hh(i * 3 + 1) * 712), pref, tg: pref ? PREF[i % 5] : [a, (a + 1 + Math.floor(hh(i * 11 + 4) * 7)) % 8] };
+        });
+        const bez = (p0, p1, p2, p3, q) => { const m = 1 - q; return [0, 1].map(j =>
+          m*m*m*p0[j] + 3*m*m*q*p1[j] + 3*m*q*q*p2[j] + q*q*q*p3[j]); };
+
+        // one pure function of time draws every token, the router pulse and the expert hit glow
+        function drawTokens(t) {
+          const glow = Array(N).fill(0); let rg = 0;
+          trails.forEach(el => el.setAttribute("opacity", "0")); dots.forEach(el => { el.style.opacity = 0; });
+          TOK.forEach((k, i) => {
+            const u = (t - k.t0) / 1.9;
+            if (u < 0 || u > 1.2) return;
+            rg = Math.max(rg, clamp(1 - Math.abs(u - .3) / .1));
+            if (u >= .8) k.tg.forEach(e => { glow[e] = Math.max(glow[e], clamp(1 - (u - .8) * 1.9 / .4)); });
+            if (u < .3) {
+              const d = dots[i * 2]; d.style.opacity = seg(u, 0, .06);
+              d.style.transform = "translate(" + k.sx + "px," + lerp(ATTN_Y, ROUTER_Y, eo(u / .3)) + "px)";
+            } else if (u < .8) {
+              const q = eo((u - .3) / .5);
+              k.tg.forEach((e, j) => {
+                const p0 = [k.sx, ROUTER_Y], p3 = [slotX(e), CARD_TOP], my = (ROUTER_Y + CARD_TOP) / 2;
+                const pts = Array.from({ length: 15 }, (_, s) => bez(p0, [k.sx, my], [p3[0], my], p3, q * s / 14));
+                const tr = trails[i * 2 + j], d = dots[i * 2 + j], b = pts[14], col = k.pref ? EX[e] : "#F9EACB";
+                tr.setAttribute("d", "M" + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L"));
+                tr.setAttribute("stroke", col); tr.setAttribute("opacity", ".85");
+                d.style.opacity = 1; d.style.transform = "translate(" + b[0] + "px," + b[1] + "px)";
+              });
+            }
+          });
+          glows.forEach((g, e) => { g.style.opacity = glow[e]; });
+          document.getElementById("dg-rglow").style.opacity = rg;
+        }
+
+        // this composition's own root (the host slot also carries data-composition-id, but has a src)
+        const ROOT = document.querySelector('[data-composition-id="diagram"]:not([data-composition-src])');
+        const tl = gsap.timeline({ paused: true });
+        const note = (n, a, b) => {
+          tl.fromTo("#dg-note-" + n, { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1, duration: .6, ease: "power3.out" }, a);
+          tl.to("#dg-note-" + n, { opacity: 0, duration: .4 }, b - .4);
+        };
+
+        // ── step 1: attention bar and the dense MLP slab
+        tl.fromTo("#dg-attn", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: .8, ease: "power3.out" }, .2);
+        tl.to("#dg-attn", { "--gloss": 2, duration: 1.1, ease: "power2.inOut" }, .6);
+        tl.fromTo("#dg-attn-r", { opacity: 0, x: 12 }, { opacity: 1, x: 0, duration: .5, ease: "power2.out" }, 5.2);
+        tl.fromTo(world, { rotationX: 16, rotationY: -28 }, { rotationX: 7, rotationY: 0, duration: 1.6, ease: "power2.inOut" }, 5.4);
+        tl.fromTo("#dg-drift", { rotationY: -2, y: 0 }, { rotationY: 2, y: -6, duration: 6.5, ease: "sine.inOut", yoyo: true, repeat: 3 }, 0);
+        tl.fromTo(cards[0], { x: 0, z: -320, rotationY: -40, scale: 1.5, opacity: 0 },
+          { z: 0, rotationY: 0, opacity: 1, duration: 1, ease: "power3.out" }, .8);
+        tl.fromTo("#dg-card-0 .dg-cell", { opacity: .08 }, { opacity: k => BASE[k], duration: .5, ease: "power2.out", stagger: .03 }, 1.2);
+        tl.set(cards.slice(1).map(c => c.querySelectorAll(".dg-cell")), { opacity: k => BASE[k % 15] }, 0);
+        note(0, .8, 4.5);
+
+        // ── step 2: copies peel out as a deck and fan into the expert row; light proves they match
+        cards.slice(1).forEach((c, j) => {
+          const i = j + 1;
+          tl.fromTo(c, { x: 0, z: -40 * i, rotationY: 0, scale: 1.5, opacity: 0 },
+            { x: 10 * i, z: -46 * i, opacity: 1, duration: .45, ease: "power2.out" }, 5.0 + j * .05);
+        });
+        cards.forEach((c, i) => tl.to(c, { x: (i - 3.5) * SLOT, z: -Math.abs(i - 3.5) * 16, rotationY: (i - 3.5) * -3, scale: 1,
+          duration: 1.1, ease: "power3.inOut" }, 5.6 + Math.abs(i - 3.5) * .04));
+        tl.fromTo(".dg-lab-mlp", { opacity: 1 }, { opacity: 0, duration: .3 }, 6.1);
+        tl.fromTo(".dg-lab-e", { opacity: 0 }, { opacity: 1, duration: .3 }, 6.2);
+        tl.fromTo("#dg-floor", { opacity: 0, scaleX: .4 }, { opacity: 1, scaleX: 1, duration: 1.2, ease: "power2.out" }, 6.0);
+        tl.fromTo(cards, { "--gloss": -1 }, { "--gloss": 2, duration: .9, ease: "power2.inOut", stagger: .05 }, 6.7);
+        tl.fromTo("#dg-scan", { x: 160 }, { x: 840, duration: 1.1, ease: "power1.inOut" }, 7.3);
+        tl.to("#dg-scan", { opacity: 1, duration: .2, yoyo: true, repeat: 1, repeatDelay: .7 }, 7.3);
+        cards.forEach((c, i) => tl.fromTo(c.querySelector(".dg-hit"), { opacity: 0 },
+          { opacity: 1, duration: .12, yoyo: true, repeat: 1, repeatDelay: .1 }, 7.3 + 1.1 * (slotX(i) - 160) / 680));
+        note(1, 6.8, 14.6);
+
+        // ── step 3: the router arrives; tokens visit their top two experts (drawn by drawTokens)
+        tl.fromTo("#dg-router", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: .9, ease: "power3.out" }, 9.8);
+        const clock = { t: 0 };
+        tl.fromTo(clock, { t: 0 }, { t: 26, duration: 26, ease: "none", onUpdate: () => drawTokens(clock.t) }, 0);
+
+        // ── step 4: same weights, different gradients: each expert drifts to its own colour and weights
+        cards.forEach((c, i) => {
+          const at = 14.8 + i * .25;
+          tl.to(c.querySelectorAll(".dg-cell"), { backgroundColor: EX[i], opacity: k => ALT[i][k], duration: 3.2, ease: "power2.inOut" }, at);
+          tl.fromTo(c.querySelector(".dg-tint"), { opacity: 0 }, { opacity: 1, duration: 3.2, ease: "power2.inOut" }, at);
+        });
+        note(2, 17.0, 20.4);
+
+        // ── results take over: the diagram recedes to a backdrop, then the loop fades
+        tl.to(ROOT, { opacity: .1, duration: .8, ease: "power2.inOut" }, 20.6);
+        tl.to(ROOT, { opacity: 0, duration: .55, ease: "power2.in" }, 25.45);
+        window.__timelines["diagram"] = tl;
+      </script>
+    </template>
+  </body>
+</html>
