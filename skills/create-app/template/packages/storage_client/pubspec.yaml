@@ -1,0 +1,15 @@
+name: storage_client
+description: Key-value storage on the device (data layer).
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ^__dart__
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

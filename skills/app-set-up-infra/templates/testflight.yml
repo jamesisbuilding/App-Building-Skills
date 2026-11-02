@@ -1,0 +1,53 @@
+# Every push to main (a promoted release/x.y.z) builds the app and uploads it to TestFlight.
+# Signing is automatic through the App Store Connect API key (tool/testflight.sh), so there's no certificates repo.
+name: TestFlight
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false # never cut an upload off half way
+
+jobs:
+  testflight:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: __FLUTTER_VERSION__ # match the local toolchain (flutter --version)
+          channel: stable
+          cache: true
+
+      - name: Test
+        run: flutter pub get && flutter test
+
+      - name: Write keys
+        env:
+          KEYS_JSON: ${{ secrets.KEYS_JSON }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          printf '%s' "$KEYS_JSON" > keys.json
+          printf '%s' "$ASC_KEY_P8" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          printf 'ASC_KEY_ID=%s\nASC_ISSUER_ID=%s\nASC_KEY_PATH=%s\n' "$ASC_KEY_ID" "$ASC_ISSUER_ID" "$RUNNER_TEMP/AuthKey.p8" > tool/asc.env
+
+      - name: Build and upload to TestFlight
+        run: tool/testflight.sh
+
+      # The build is obfuscated; these decode its crash reports
+      - uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ github.sha }}
+          path: build/symbols
+          retention-days: 90

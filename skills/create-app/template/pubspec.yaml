@@ -1,0 +1,25 @@
+name: __app__
+description: __app__
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ^__dart__
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  settings_repository:
+    path: packages/settings_repository
+  storage_client:
+    path: packages/storage_client
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  generate: true
+  uses-material-design: true

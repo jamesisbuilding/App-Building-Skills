@@ -1,0 +1,15 @@
+name: settings_repository
+description: The user's app settings (repository layer).
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ^__dart__
+
+dependencies:
+  storage_client:
+    path: ../storage_client
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

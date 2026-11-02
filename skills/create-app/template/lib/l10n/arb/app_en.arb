@@ -1,0 +1,19 @@
+{
+  "@@locale": "en",
+  "appTitle": "__title__",
+  "@appTitle": {
+    "description": "The app's name, shown in the app bar and the app switcher"
+  },
+  "appearanceSystem": "System",
+  "@appearanceSystem": {
+    "description": "Appearance option: follow the phone's light or dark setting"
+  },
+  "appearanceLight": "Light",
+  "@appearanceLight": {
+    "description": "Appearance option: always light"
+  },
+  "appearanceDark": "Dark",
+  "@appearanceDark": {
+    "description": "Appearance option: always dark"
+  }
+}

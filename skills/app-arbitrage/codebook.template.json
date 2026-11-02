@@ -1,0 +1,20 @@
+{
+  "_how": "Copy to teardowns/<slug>/codebook.json. Fill aspects, personas and requests after reading low.txt and asks.txt. Keep ids short snake_case. Keep the generic fields as they are so results compare across apps.",
+  "app": "<App name>",
+  "aspects": {
+    "core_loop": "the main thing users do every session",
+    "pricing_access": "objects to paying at all / wants a free tier",
+    "pricing_level": "price too high / wants cheaper or one-time",
+    "trial_billing": "trial, renewal, reminder, refund, cancellation",
+    "dark_patterns": "misleading paywall, false choice, hidden close, repeat paywalls, gimmick discounts",
+    "support": "cannot reach a human, slow or no reply",
+    "nags": "share, rate or upsell prompts during use",
+    "bugs": "crashes, freezes, broken navigation, lost state",
+    "content_quality": "accuracy, errors, depth of the content",
+    "design": "look, feel, ease of use"
+  },
+  "personas": ["unknown"],
+  "requests": [],
+  "payer": ["paid", "trial", "hit_paywall_left", "free_tier", "unknown"],
+  "wtp": ["pays_happy", "would_pay_if", "never_pay", "unknown"]
+}
