@@ -22,21 +22,22 @@ Each skill folder has a `SKILL.md`; most also have a `README.md` with setup note
 | # | Stage | Track | Skills |
 | --- | --- | --- | --- |
 | 00 | [Foundations](#00-foundations) | Strategy | deep-work, ponytail, i-have-adhd, eli5 |
-| 01 | [Ideation](#01-ideation) | Strategy | app-arbitrage, app-keyword-research |
+| 01 | [Ideation](#01-ideation) | Strategy | app-arbitrage, app-keyword-research, grill-me |
 | 02 | [Market analysis](#02-market-analysis) | Strategy | app-arbitrage, app-keyword-research, competitor analysis, Replica |
 | 03 | [Customer avatar](#03-customer-avatar-icp--voc) | Customer | **gap** |
 | 04 | [Validation](#04-validation) | Customer | replica-launch (landing page) |
 | 05 | [Offer & business model](#05-offer--business-model) | Revenue | app-offer, Paywall Gallery |
-| 06 | [Branding](#06-branding) | Marketing | appicon-creator, replica-brand |
-| 07 | [Product & UX design](#07-product--ux-design) | Product | grill-me, ASD-STE100, Appllama, Mobbin, diagrams |
+| 06 | [Branding](#06-branding) | Marketing | appicon-creator, brand-reference-pack, replica-brand |
+| 07 | [Product & UX design](#07-product--ux-design) | Product | ASD-STE100, Appllama, Mobbin, diagrams |
 | 08 | [App development](#08-app-development) | Product | create-app, app-set-up-infra, VGV, REA |
-| 09 | [Pre-launch & go-to-market](#09-pre-launch--go-to-market) | Marketing | brag, Hyperframes, Remotion, Instagram |
+| 09 | [Pre-launch & go-to-market](#09-pre-launch--go-to-market) | Marketing | brag, reel-script, reel-motion-graphics, Hyperframes, Remotion, Instagram |
 | 10 | [Launch](#10-launch) | Marketing | new-app-info, Mobile App Ship |
-| 11 | [Acquisition](#11-acquisition) | Marketing | Instagram agent |
+| 11 | [Acquisition](#11-acquisition) | Marketing | reel-study, Instagram agent |
 | 12 | [Activation & retention](#12-activation--retention) | Customer | **gap** |
 | 13 | [Monetisation optimisation](#13-monetisation-optimisation) | Revenue | app-offer (shipped mode) |
 | 14 | [Measure & iterate](#14-measure--iterate) | Strategy | after-action-report, ig-audit |
 | 15 | [Scale](#15-scale) | Strategy | **gap** |
+| — | [Expert brains](#expert-brains) | All | channel-brain, cb-ingest, talk-to |
 
 ---
 
@@ -55,10 +56,12 @@ How you work with Claude before any app exists.
 - **[app-arbitrage](skills/app-arbitrage/) (mine)** Paste a successful App Store app; get every review Apple exposes (36 storefronts), coded by subagents, tangential markets checked, and one scored rebuild tweak. Seeds `features.csv`. This is "rip an app idea and find the opportunity".
 - **[app-keyword-research](skills/app-keyword-research/) (mine) ✅** Turn an idea into search phrases and measure demand (App Store autocomplete) against competition (current top 10). Compare ideas before building.
 
+- **[Grill me](https://www.aihero.dev/skills-grill-me) ✅** Interviews you in rounds about a loose idea until you can commit to it. Writes no files; you have to push back, not just agree.
+
 ## 02 Market analysis
 
 - **app-arbitrage** and **app-keyword-research** (above).
-- **[Mobile Competitor Analysis](https://mcpmarket.com/tools/skills/mobile-app-competitor-analysis-1)** Feature gaps from competitor reviews and pain points, keywords, and a screenshot audit.
+- **[Mobile Competitor Analysis](https://mcpmarket.com/tools/skills/mobile-app-competitor-analysis-1)** ASO teardown of rival apps: metadata, review sentiment, screenshots and icons, keywords they rank for that you don't, monetisation and update cadence.
 - **[Replica](https://github.com/Jakeschincariol/replica-skill)** `replica-entrepreneur` ranks what competitors' users hate and miss; `replica-recon` tears down screens, flows and features.
 - **RankPilot MCP ✅** Keyword tracking per market: volume, difficulty, competitor keywords.
 
@@ -80,11 +83,11 @@ How you work with Claude before any app exists.
 ## 06 Branding
 
 - **[appicon-creator](skills/appicon-creator/) (mine) ✅** App icons to Apple's Human Interface Guidelines: one strong symbol, audit, production export.
+- **[brand-reference-pack](skills/brand-reference-pack/) (mine)** Builds a brand pack for any app from its real surfaces (website, App Store listing and reviews, socials, the live app driven on the simulator, code tokens) and checks the ICP, VOC and brand voice it depends on. Outputs markdown, `tokens.json` and a PDF that content and design decisions start from.
 - **[Replica](https://github.com/Jakeschincariol/replica-skill)** `replica-brand` for names, trademark, domain and handle checks, palette and voice.
 
 ## 07 Product & UX design
 
-- **[Grill me](https://www.aihero.dev/skills-grill-me) ✅** Align Claude to your intent and walk every edge case before execution.
 - **[ASD-STE100](https://github.com/danyuchn/asd-ste100-skill)** Write requirements in non-ambiguous Simplified Technical English.
 - **[Appllama](https://appllama.io/)** Study winning apps and build to their quality bar (`appllama-usage`, `appllama-app-design-skill`, Appllama MCP).
 - **[Mobbin](https://mobbin.com/discover/apps/ios/latest)** Real app screens and flows for inspiration.
@@ -103,6 +106,8 @@ How you work with Claude before any app exists.
 ## 09 Pre-launch & go-to-market
 
 - **[Brag](https://github.com/latent-spaces/brag) ✅** Launch videos for your software, built on Hyperframes (`brag-slim` is the one-file version).
+- **[reel-script](skills/reel-script/) (mine)** Writes the spoken script for a 20–60s explainer reel: question hook, a real story from the presenter, every concept explained simply (via ELI5), timed into beats for recording.
+- **[reel-motion-graphics](skills/reel-motion-graphics/) (mine)** Turns that script into a 9:16 explainer reel in HyperFrames, animation above the fold and talking head below. Outputs the project, a rendered MP4 and a live player. The look is my house style; swap `template/brand.css` for yours.
 - **[Hyperframes](https://github.com/heygen-com/hyperframes) ✅** HTML-based video compositions and rendering.
 - **[Remotion](https://www.remotion.dev/)** Video in React.
 - **[Instagram Agent](https://github.com/Jakeschincariol/instagram-agent-skill)** `ig-plan`, `ig-profile`, `ig-reel`, `ig-carousel`, `ig-story`.
@@ -110,11 +115,12 @@ How you work with Claude before any app exists.
 ## 10 Launch
 
 - **[new-app-info](skills/new-app-info/) (mine) ✅** Answers App Review's "we need additional information" with all six required items, built from the app's own code, plus Apple's common-issue checks.
-- **[Mobile App Ship](https://mcpmarket.com/tools/skills/mobile-app-ship)** Guides the app to a submittable state.
+- **[Mobile App Ship](https://mcpmarket.com/tools/skills/mobile-app-ship)** Ships a Flutter + Firebase app: preflight, build and signing checks, RevenueCat purchases and ASO, then phased TestFlight, App Store and Google Play submissions, pausing for your approval before any store change.
 - **[Replica](https://github.com/Jakeschincariol/replica-skill)** `replica-launch` listing lint, `replica-deploy` preflight checklist.
 
 ## 11 Acquisition
 
+- **[reel-study](skills/channel-brain/.claude/skills/reel-study/) (mine)** Rips reels, TikToks and Shorts into study cards (transcript, caption, keyframes in a hook/story/visuals template) to build a swipe file of what stops the scroll. Part of channel-brain.
 - **[Instagram Agent](https://github.com/Jakeschincariol/instagram-agent-skill)** `ig-viral`, `ig-repurpose`, `ig-comment`, `ig-dm`, `ig-reply`. They draft, you send.
 
 ## 12 Activation & retention
@@ -138,6 +144,14 @@ How you work with Claude before any app exists.
 
 - **gap.** No skill yet.
 
+## Expert brains
+
+The SOP's councils are LLM wikis built from each expert's material. These build and run them.
+
+- **[channel-brain](skills/channel-brain/) (mine)** Paste a YouTube channel or playlist; every video is ripped, transcribed and ingested into its own wiki brain. Run it from the folder root; brains land in `brains/`.
+- **cb-ingest (mine)** Adds anything to an existing brain: a video, a channel, or local PDFs, docs and folders.
+- **talk-to (mine)** Builds personas from a brain and lets you talk to them directly ("get X's take on this"). This is how you run a council room.
+
 ---
 
 ## Proven on 7 Minute Math
@@ -154,5 +168,5 @@ The skills used to take 7 Minute Math from idea to the App Store, in order:
 ## Adding a skill (for me)
 
 1. Build it in `~/.claude/skills/<name>/` (or symlink it there).
-2. Add `<name>` to `SKILLS` in [`sync.sh`](sync.sh) and to its stage above.
+2. Add `"name|source folder|extra excludes"` to `SKILLS` in [`sync.sh`](sync.sh) (the source can be anywhere, e.g. a project's `.claude/skills/<name>`), and add the skill to its stage above.
 3. Run `./sync.sh`. It copies every listed skill, strips private files (`examples/`, the Hormozi transcript), commits and pushes.
